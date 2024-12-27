@@ -76,8 +76,9 @@ model User {
   lastName String
   gender Gender
   mobile BigInt
+  bio String?
   location String
-  rating Rating
+  rating Rating?
   social_links String[]
   dob DateTime?
 
