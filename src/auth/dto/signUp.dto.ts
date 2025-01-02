@@ -1,4 +1,4 @@
-import { IsDate, IsEmail, IsEmpty, IsNotEmpty, IsNotIn, IsNumber, IsOptional, IsString } from "class-validator"
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches } from "class-validator"
 
 enum Gender {
     MALE,
@@ -17,7 +17,7 @@ enum Rating {
 export class SignUpDto{
     @IsNotEmpty()
     @IsString()
-    userName: string
+    username: string
 
     @IsEmail()
     @IsNotEmpty()
@@ -39,8 +39,9 @@ export class SignUpDto{
     gender: Gender
 
     @IsNotEmpty()
-    @IsNumber()
-    mobile: number
+    @IsString()
+    @Matches(/^\d{10}$/, { message: 'Mobile number must be exactly 10 digits' })
+    mobile: string
     
     @IsNotEmpty()
     @IsString()
@@ -54,5 +55,6 @@ export class SignUpDto{
 
     @IsOptional()
     dob?: Date|null
+
     social_links: string[]
 }

@@ -69,13 +69,17 @@ enum Mate_Type {
 //Many to Many with Intrest (Many user can have one intrest and vice-versa)
 model User {
   id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  refreshToken String?
+
   username String @unique
   email String @unique
   password String
   firstName String
   lastName String
   gender Gender
-  mobile BigInt
+  mobile String @unique
   bio String?
   location String
   rating Rating?
