@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -14,46 +14,6 @@ export class AuthService {
         private jwtService: JwtService,
         private config: ConfigService
     ){}
-
-
-    //Create the refresh and access tokens
-    async getTokens(userId: number, email: string){
-        const [at, rt] = await Promise.all([
-            this.jwtService.signAsync({
-                sub: userId,
-                email,
-            }, {
-                secret: 'at-secret',
-                expiresIn: 60 * 15,
-            }),
-            this.jwtService.signAsync({
-                sub: userId,
-                email,
-            }, {
-                secret: 'rt-secret',
-                expiresIn: 60 * 60 * 24 * 15
-            })
-
-        ])
-        
-        return {
-            access_token: at,
-            refresh_token: rt
-        }
-    }
-
-    //function to add the refresh token in user table
-    async updateRefreshToken(userId: number, refreshToken: string){
-        const hash = await argon.hash(refreshToken);
-        await this.prisma.user.update({
-            where: {
-                id: userId
-            }, 
-            data: {
-                refreshToken: hash
-            }
-        })
-    }
 
     //Creating and storing user (signUp)
     async signUp(dto: SignUpDto): Promise<Tokens>{
@@ -110,17 +70,103 @@ export class AuthService {
     }
 
     //For login
-    async signIn(dto: SignInDto){
+    async signIn(dto: SignInDto): Promise<Tokens>{
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: dto.email
+            }
+        })
+
+        //For invalid email id
+        if(!user) {
+            throw new ForbiddenException('Invalid email id')
+        }
+        
+        // Check for the password conversion
+        const success = await argon.verify(user.password,dto.password)
+        if(!success) {
+            throw new ForbiddenException('Invalid Password')
+        }
+
+        //Genrate tokens
+        const tokens = await this.getTokens(user.id, user.email) //fetch the tokens
+        await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
+        return tokens
 
     }
 
     //For logout
-    async logout(){
-
+    async logout(userId: number){
+        await this.prisma.user.updateMany({
+            where:{
+                id: userId,
+                refreshToken: {
+                    not: null
+                }
+            },
+            data: {
+                refreshToken: null
+            }
+        })
     }
 
     //For refresh the refresh token (increase validity of access token)
-    async refreshTokens() {
-
+    async refreshTokens(userId: number, refreshToken: string) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if(!user) {
+            throw new ForbiddenException('Invalid User')
+        }
+        const success = await argon.verify(user.refreshToken, refreshToken)
+        if(!success) {
+            throw new ForbiddenException('Invalid Credentials')
+        }
+        //Genrate tokens
+        const tokens = await this.getTokens(user.id, user.email) //fetch the tokens
+        await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
+        return tokens
     }
+
+    //Create the refresh and access tokens
+    async getTokens(userId: number, email: string){
+        const [at, rt] = await Promise.all([
+            this.jwtService.signAsync({
+                sub: userId,
+                email,
+            }, {
+                secret: 'at-secret',
+                expiresIn: 60 * 15,
+            }),
+            this.jwtService.signAsync({
+                sub: userId,
+                email,
+            }, {
+                secret: 'rt-secret',
+                expiresIn: 60 * 60 * 24 * 15
+            })
+
+        ])
+        
+        return {
+            access_token: at,
+            refresh_token: rt
+        }
+    }
+
+    //function to add the refresh token in user table
+    async updateRefreshToken(userId: number, refreshToken: string){
+        const hash = await argon.hash(refreshToken);
+        await this.prisma.user.update({
+            where: {
+                id: userId
+            }, 
+            data: {
+                refreshToken: hash
+            }
+        })
+    }
+    
 }
