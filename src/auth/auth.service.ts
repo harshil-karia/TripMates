@@ -108,6 +108,9 @@ export class AuthService {
                 refreshToken: null
             }
         })
+        return {
+            msg: 'User logged out'
+        }
     }
 
     //For refresh the refresh token (increase validity of access token)
@@ -117,9 +120,11 @@ export class AuthService {
                 id: userId
             }
         })
-        if(!user) {
+        if(!user || !user.refreshToken) {
             throw new ForbiddenException('Invalid User')
         }
+        //console.log(user.refreshToken)
+        console.log()
         const success = await argon.verify(user.refreshToken, refreshToken)
         if(!success) {
             throw new ForbiddenException('Invalid Credentials')
