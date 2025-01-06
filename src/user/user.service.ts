@@ -58,7 +58,7 @@ export class UserService {
         }
     }
 
-    async updatePassword(dto: UpdatePasswordDto) {
+    async forgotPassword(dto: UpdatePasswordDto) {
         const hashedPassword = await argon.hash(dto.password)
         try{
             const user = await this.prisma.user.findUnique({

@@ -18,8 +18,8 @@ export class UserController {
 
     @Public()
     @HttpCode(HttpStatus.OK)
-    @Patch('updatePassword')
-    updatePassword(@Body() dto: UpdatePasswordDto) {
-        return this.userService.updatePassword(dto)
+    @Patch('forgotPassword')
+    forgotPassword(@Body() dto: UpdatePasswordDto) {
+        return this.userService.forgotPassword(dto)
     }
 }
