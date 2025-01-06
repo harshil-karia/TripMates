@@ -14,39 +14,40 @@ enum Rating {
     FIVE,
 }
 
-export class SignUpDto{
-    @IsNotEmpty()
-    @IsString()
-    username: string
+export class UpdateUserDto{
 
+    @IsOptional()
+    @IsString()
+    username?: string
+
+    @IsDate()
+    @IsOptional()
+    updatedAt?: Date
+
+    @IsOptional()
     @IsEmail()
-    @IsNotEmpty()
-    email: string
+    email?: string
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    password: string
+    firstName?: string
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    firstName: string
+    lastName?: string
 
-    @IsNotEmpty()
-    @IsString()
-    lastName: string
-
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(Gender)
-    gender: Gender
+    gender?: Gender
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     @Matches(/^\d{10}$/, { message: 'Mobile number must be exactly 10 digits' })
-    mobile: string
+    mobile?: string
     
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    location: string
+    location?: string
 
     @IsOptional()
     bio?: string|null

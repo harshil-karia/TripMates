@@ -25,7 +25,6 @@ export class AuthController {
         return this.authService.signIn(dto)
     }
 
-    //@UseGuards(AccessTokenGuard)
     @HttpCode(HttpStatus.OK)
     @Post('logout')
     logout(@GetCurrentUserId() userId: number){
