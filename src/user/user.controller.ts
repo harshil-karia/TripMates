@@ -1,7 +1,8 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Param, Patch } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { GetCurrentUserId, Public } from 'src/auth/common/decorator';
 import { UpdatePasswordDto, UpdateUserDto } from './dto';
 import { UserService } from './user.service';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Controller('user')
 export class UserController {
@@ -18,9 +19,9 @@ export class UserController {
 
     @Public()
     @HttpCode(HttpStatus.OK)
-    @Patch('forgotPassword')
-    forgotPassword(@Body() dto: UpdatePasswordDto) {
-        return this.userService.forgotPassword(dto)
+    @Patch('updatePassword')
+    updatePassword(@Body() dto: UpdatePasswordDto) {
+        return this.userService.updatePassword(dto)
     }
 
     @HttpCode(HttpStatus.OK)
@@ -30,5 +31,19 @@ export class UserController {
             throw new ForbiddenException("Invalid username")
         }
         return this.userService.searchUserByUsername(username)
+    }
+
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    @Post('forgotPassword')
+    forgotPassword(@Body('email') email: string) {
+        return this.userService.forgotPassword(email)
+    }
+
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    @Patch(':jwt')
+    resetPassword(@Param('jwt') jwt: string, @Body() dto: ResetPasswordDto) {
+        return this.userService.resetPassword(jwt,dto)
     }
 }

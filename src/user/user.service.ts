@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdatePasswordDto, UpdateUserDto } from './dto';
 import { AuthService } from 'src/auth/auth.service';
 import * as argon from 'argon2'
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Injectable()
 export class UserService {
@@ -58,7 +59,7 @@ export class UserService {
         }
     }
 
-    async forgotPassword(dto: UpdatePasswordDto) {
+    async updatePassword(dto: UpdatePasswordDto) {
         const hashedPassword = await argon.hash(dto.password)
         try{
             const user = await this.prisma.user.findUnique({
@@ -86,6 +87,56 @@ export class UserService {
         }
     }
 
+    async forgotPassword(userEmail: string) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: userEmail
+            }
+        })
+
+        if(!user) {
+            throw new ForbiddenException('No user with this email found')
+        }
+
+        const otp = this.genrateOtp()
+        
+        const otpJwt = await this.jwtService.signAsync({
+            otp,
+            userEmail
+        }, {
+            secret: 'otp-secret',
+            expiresIn: '10m'
+        })
+
+        await this.sendEmail(userEmail, otp)
+
+        return {jwt: otpJwt}
+    }
+
+    async resetPassword(jwt: string, dto: ResetPasswordDto) {
+        const payload = await this.jwtService.verifyAsync(jwt,{
+            secret: 'otp-secret'
+        });
+        if(payload.otp !== dto.otp) {
+            throw new ForbiddenException('Invalid Otp')
+        }
+
+        const hashedPassword = await argon.hash(dto.password)
+
+        await this.prisma.user.update({
+            where: {
+                email: payload.userEmail
+            },
+            data: {
+                password: hashedPassword
+            }
+        });
+
+        return {message: 'Password updated successfully'}
+
+
+    }
+
     async searchUserByUsername(username: string) {
         const user = await this.prisma.user.findUnique({
             where: {
@@ -111,5 +162,18 @@ export class UserService {
             throw new ForbiddenException('Invalid username')
         }
         return user;
+    }
+
+
+
+    genrateOtp(): string {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        return otp;
+    }
+
+    async sendEmail(email: string, otp: string) {
+        //Use nodemailer and send the link and with otp and jwt
+        console.log(email)
+        console.log(otp)
     }
 }
