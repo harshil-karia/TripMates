@@ -18,7 +18,7 @@ export class UserService {
     async updateUser(userId: number, dto: UpdateUserDto){
 
         const filteredData = Object.fromEntries(
-            Object.entries(dto).filter(([_, value])=> value !== undefined)
+            Object.entries(dto).filter(([_, value]) => value !== undefined)
         )
         try{
             const user = await this.prisma.user.update({
@@ -84,5 +84,32 @@ export class UserService {
         } catch(error) {    
             throw new ForbiddenException('Error in primsa opreation')
         }
+    }
+
+    async searchUserByUsername(username: string) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                username
+            },
+            select: {
+                username: true,
+                firstName: true,
+                lastName: true,
+                dob: true,
+                gender: true,
+                bio: true,
+                email: true,
+                mobile: true,
+                location: true,
+                rating: true,
+                posts: true,
+                intrests: true,
+                social_links: true,
+            }
+        })
+        if(!user) {
+            throw new ForbiddenException('Invalid username')
+        }
+        return user;
     }
 }
