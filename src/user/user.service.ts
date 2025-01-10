@@ -133,8 +133,6 @@ export class UserService {
         });
 
         return {message: 'Password updated successfully'}
-
-
     }
 
     async searchUserByUsername(username: string) {
