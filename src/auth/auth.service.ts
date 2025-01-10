@@ -135,6 +135,10 @@ export class AuthService {
         return tokens
     }
 
+    async saveOAuthUser(user: any) {
+        
+    }
+
     //Create the refresh and access tokens
     async getTokens(userId: number, email: string){
         const [at, rt] = await Promise.all([
