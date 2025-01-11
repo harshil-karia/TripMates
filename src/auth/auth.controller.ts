@@ -5,6 +5,7 @@ import { Tokens } from './types';
 import { RefreshTokenGuard } from './common/guards';
 import { GetCurrentUser, GetCurrentUserId, Public } from './common/decorator';
 import { AuthGuard } from '@nestjs/passport';
+import { GetOAuthUser } from './common/decorator/get-oauth-user';
 
 
 @Controller('auth')
@@ -54,10 +55,8 @@ export class AuthController {
     @Public()
     @Get('google/callback')
     @UseGuards(AuthGuard('oauth'))  // Use the OAuthStrategy guard
-    googleAuthRedirect() {
-    // This will be called once the user is redirected back from Google
-    // After successful authentication, user data will be available
-        return { message: 'Authentication successful' };
+    googleAuthRedirect(@GetOAuthUser() user: any) {
+        return this.authService.saveOAuthUser(user)
     }
 
 

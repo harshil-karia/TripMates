@@ -79,7 +79,7 @@ model User {
   firstName String
   lastName String
   gender Gender
-  mobile String @unique
+  mobile String? @unique
   bio String?
   location String
   rating Rating?

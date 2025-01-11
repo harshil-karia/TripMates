@@ -26,7 +26,7 @@ export class OAuthStrategy extends PassportStrategy(Strategy, 'oauth') {
         // console.log('Access Token:', accessToken);
         // console.log('Refresh Token:', refreshToken);
         //console.log('Profile:', profile);
-        console.log(profile.emails[0].value)
+        //console.log(profile.emails[0].value)
         return {
             accessToken,
             refreshToken,

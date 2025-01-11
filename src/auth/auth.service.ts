@@ -136,7 +136,62 @@ export class AuthService {
     }
 
     async saveOAuthUser(user: any) {
-        
+        const userEmail = user.profile.emails[0].value
+
+        const existingUser = await this.prisma.user.findUnique({
+            where: {
+                email: userEmail
+            }
+        })
+
+        //SignIn the user
+        if(existingUser) {
+            const signInUser: SignInDto = {
+                email: userEmail,
+                password: user.profile.id
+            }
+            return this.signIn(signInUser)
+        }
+
+        //Create new user
+        const firstName = user.profile.name.givenName
+        const lastName = user.profile.name.familyName
+        let genratedUsername = await this.genrateUsername(user.profile.name.givenName)
+        let checkUsername = await this.prisma.user.findUnique({
+            where: {
+                username: genratedUsername
+            }
+        })
+        if(checkUsername) {
+            while(checkUsername) {
+                genratedUsername = await this.genrateUsername(user.profile.name.givenName)
+                checkUsername = await this.prisma.user.findUnique({
+                    where: {
+                        username: genratedUsername
+                    }
+                })
+            }
+        }
+
+        const password = user.profile.id
+        const hashedPassword = await argon.hash(password)
+        const userDto = {
+            username: genratedUsername,
+            email: userEmail,
+            password: hashedPassword,
+            mobile: null,
+            firstName,
+            lastName,
+            gender: 'OTHER' as Gender,
+            social_links: [],
+            location: "Ahmedabad"
+        }
+        const newUser = await this.prisma.user.create({
+            data: userDto
+        })
+        const tokens = await this.getTokens(newUser.id, newUser.email) //fetch the tokens
+        await this.updateRefreshToken(newUser.id, tokens.refresh_token) //put the refresh token in database
+        return tokens
     }
 
     //Create the refresh and access tokens
@@ -176,6 +231,12 @@ export class AuthService {
                 refreshToken: hash
             }
         })
+    }
+
+    async genrateUsername(name: string) {
+        const random = Math.floor(1000 + Math.random() * 9000).toString();
+        const username = name + random
+        return username.toLowerCase()
     }
     
 }
