@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PostService } from './post.service';
 import { FileInterceptor, MulterModule } from '@nestjs/platform-express';
-import { AddPostDto } from './dto';
+import { AddPostDto, UpdatePostDto } from './dto';
 import { GetCurrentUserId } from 'src/auth/common/decorator';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -31,29 +31,40 @@ export class PostController {
     }
 
     @Get(':postId')
+    @HttpCode(HttpStatus.OK)
     async getPostById(@Param('postId',ParseIntPipe)postId: number) {
         return this.postService.getPostById(postId)   
     }
 
     @Get('user/:userId')
+    @HttpCode(HttpStatus.OK)
     async getPostsOfUser(@Param('userId',ParseIntPipe)userId: number) {
         return this.postService.getPostsOfUser(userId)
     }
 
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     @UseInterceptors(FileInterceptor('image',multerOptions))
     async addPost(
         @UploadedFile() images: Express.Multer.File,
         @Body() dto: AddPostDto,
         @GetCurrentUserId() userId: number
     ) {
-        console.log(images); // Check the image object in the logs
-        // image.path will give you the path to the saved file
         return this.postService.addPost(dto, images, userId);
     }
-    async updatePost() {}
+
+    @Patch('updatePost/:postId')
+    @HttpCode(HttpStatus.OK)
+    async updatePost(
+        @Param('postId', ParseIntPipe) postId: number,
+        @Body() dto: UpdatePostDto,
+        @GetCurrentUserId() userId: number
+    ) {
+        return this.postService.updatePost(dto,postId,userId)
+    }
 
     @Delete('delete/:postId')
+    @HttpCode(HttpStatus.OK)
     async deletePost(
         @Param('postId',ParseIntPipe) postId: number,
         @GetCurrentUserId() userId: number

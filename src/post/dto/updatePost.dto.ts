@@ -9,10 +9,8 @@ export class UpdatePostDto {
         trip_duration?: string
     
         @IsEnum(Budget_Type)
-        @IsNotEmpty()
         budget_type?: Budget_Type
-    
-        @IsNotEmpty()
+
         @IsString()
         budget?: string
 }

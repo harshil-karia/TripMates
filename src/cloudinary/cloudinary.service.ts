@@ -21,12 +21,9 @@ export class CloudinaryService {
             const response = await cloudinary.uploader.upload(loaclFilePath,{
                 folder: 'uploads'
             });
-            // console.log(response);
             return response
         } catch (error) {
-            console.log(error);
-            
-            //throw new ForbiddenException('Unable to upload file on cloudinary')   
+            throw new ForbiddenException('Unable to upload file on cloudinary',error)   
         }
     }
 
@@ -35,12 +32,10 @@ export class CloudinaryService {
             if(!public_id) {
                 throw new ForbiddenException('No public id found')
             }
-
             const response = await cloudinary.uploader.destroy(public_id)
-            console.log(response);
             return response
         } catch (error) {
-            throw new ForbiddenException('Unable to delete image')
+            throw new ForbiddenException('Unable to delete image',error)
         }
     }
 }
