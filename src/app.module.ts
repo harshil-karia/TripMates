@@ -8,6 +8,30 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './auth/common/guards';
 import { UserModule } from './user/user.module';
+import { PostModule } from './post/post.module';
+import { CommentsModule } from './comments/comments.module';
+import { LikesModule } from './likes/likes.module';
+import { HashtagService } from './hashtag/hashtag.service';
+import { HashtagController } from './hashtag/hashtag.controller';
+import { HashtagModule } from './hashtag/hashtag.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
+
+
+
+// export const multerOptions = {
+//   storage: diskStorage({
+//     destination: './uploads', // Folder to save files
+//     filename: (req, file, cb) => {
+//       const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+//       const ext = extname(file.originalname); // Get file extension
+//       cb(null, `${file.fieldname}-${uniqueSuffix}-${ext}`); // Save with unique name
+//     },
+//   }),
+// };
 
 @Module({
   imports: [
@@ -17,14 +41,20 @@ import { UserModule } from './user/user.module';
       isGlobal: true,
     }),
     UserModule,
+    PostModule,
+    CommentsModule,
+    LikesModule,
+    HashtagModule,
+    CloudinaryModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HashtagController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard
     },
+    HashtagService,
   ],
 })
 export class AppModule {}

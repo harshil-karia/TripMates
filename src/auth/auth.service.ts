@@ -135,9 +135,9 @@ export class AuthService {
         return tokens
     }
 
+    // Save the user with google signUp in database and if user already exists signin
     async saveOAuthUser(user: any) {
         const userEmail = user.profile.emails[0].value
-
         const existingUser = await this.prisma.user.findUnique({
             where: {
                 email: userEmail
@@ -157,6 +157,8 @@ export class AuthService {
         const firstName = user.profile.name.givenName
         const lastName = user.profile.name.familyName
         let genratedUsername = await this.genrateUsername(user.profile.name.givenName)
+        
+        //Check if the genrated username already exists or not if exists try till you dont find a unqiue one
         let checkUsername = await this.prisma.user.findUnique({
             where: {
                 username: genratedUsername
@@ -233,6 +235,7 @@ export class AuthService {
         })
     }
 
+    //Genrate username for user with google SignUp
     async genrateUsername(name: string) {
         const random = Math.floor(1000 + Math.random() * 9000).toString();
         const username = name + random

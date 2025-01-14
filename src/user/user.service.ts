@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdatePasswordDto, UpdateUserDto } from './dto';
-import { AuthService } from 'src/auth/auth.service';
 import * as argon from 'argon2'
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 
