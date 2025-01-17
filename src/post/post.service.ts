@@ -236,7 +236,7 @@ export class PostService {
         const filteredData = Object.fromEntries(
             Object.entries(dto).filter(([_, value]) => value !== undefined)
         )
-
+        
         const updatedPost = await this.prisma.post.update({
             where: {
                 id: postId
