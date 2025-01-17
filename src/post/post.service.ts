@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AddPostDto, UpdatePostDto } from './dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as fs from 'fs'
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class PostService {
@@ -11,11 +12,16 @@ export class PostService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private cloudinaryService: CloudinaryService
+        private cloudinaryService: CloudinaryService,
+        private authService: AuthService
     ) {}
 
     // Retrive all the posts
-    async getAllPosts() {
+    async getAllPosts(user: any) {
+        //console.log(user)
+        if(user == null) {
+            throw new ForbiddenException('Invalid User')
+        }
         const posts = await this.prisma.post.findMany({
             select: {
                 description: true,
@@ -37,21 +43,53 @@ export class PostService {
                 hashtag: true,
             }
         })
-        return posts
+        const tokens = await this.authService.getTokens(user.sub,user.email)
+        const at = tokens.access_token
+        return {
+            at,
+            posts
+        }
     }
 
     // Get a post having specific id
-    async getPostById(postId: number) {
+    async getPostById(postId: number,user: any) {
+        if(user == null) {
+            throw new ForbiddenException('Invalid User')
+        }
         const post = await this.prisma.post.findUnique({
             where: {
                 id: postId
+            },
+            select: {
+                description: true,
+                time: true,
+                budget: true,
+                trip_duration: true,
+                budget_type: true,
+                images: true,
+                user: {
+                    select: {
+                        username: true,
+                        firstName: true,
+                        lastName: true,
+                    }
+                },
+                preferedMate: true,
+                like: true,
+                comments: true,
+                hashtag: true,
             }
         })
 
         if(!post) {
             throw new ForbiddenException('No post with this id found')
         }
-        return post
+        const tokens = await this.authService.getTokens(user.sub,user.email)
+        const at = tokens.access_token
+        return {
+            at,
+            post
+        }
     }
 
     // Get all posts of a specific user 
@@ -70,14 +108,46 @@ export class PostService {
         const posts = await this.prisma.post.findMany({
             where: {
                 userId
+            },
+            select: {
+                description: true,
+                time: true,
+                budget: true,
+                trip_duration: true,
+                budget_type: true,
+                images: true,
+                user: {
+                    select: {
+                        username: true,
+                        firstName: true,
+                        lastName: true,
+                    }
+                },
+                preferedMate: true,
+                like: true,
+                comments: true,
+                hashtag: true,
             }
         })
-        return posts
+        const tokens = await this.authService.getTokens(userId,user.email)
+        const at = tokens.access_token
+        return {
+            at,
+            posts
+        }
     }
 
     // Create a post
     async addPost(dto: AddPostDto, images: Express.Multer.File, userId: number) {
         
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if(!user) {
+            throw new ForbiddenException('Invalid User')
+        }
         //Logic for post without images
         const budget = parseInt(dto.budget)
         if(!images) {
@@ -92,7 +162,12 @@ export class PostService {
                     trip_duration: dto.trip_duration,
                 }
             })
-            return newPost
+            const tokens = await this.authService.getTokens(userId,user.email)
+            const at = tokens.access_token
+            return {
+                at,
+                newPost
+            }
         }
         //Logic for post with image
         try {
@@ -119,7 +194,9 @@ export class PostService {
                         }
                     }
                 })
-            return post
+                const tokens = await this.authService.getTokens(userId,user.email)
+                const at = tokens.access_token
+                return {at,post}
         } catch (error) {
             throw new ForbiddenException("Unable to upload",error)   
         } finally {
@@ -135,6 +212,13 @@ export class PostService {
     }
 
     async updatePost(dto: UpdatePostDto, postId: number, userId: number) {
+        
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        
         const post = await this.prisma.post.findUnique({
             where: {
                 id: postId
@@ -160,11 +244,13 @@ export class PostService {
             data: filteredData
         })
 
-        return updatedPost
+        const tokens = await this.authService.getTokens(userId,user.email)
+        const at = tokens.access_token
+        return {at, updatedPost}
     }
 
     // Delete a specific post
-    async deletePost(postId: number, userId: number) {
+    async deletePost(postId: number, userId: number,user: any) {
 
         // Find the post of postId
         const post = await this.prisma.post.findUnique({
@@ -216,6 +302,8 @@ export class PostService {
                 id: postId
             }
         })
-        return response
+        const tokens = await this.authService.getTokens(userId,user.email)
+        const at = tokens.access_token
+        return {at,response}
     }
 }

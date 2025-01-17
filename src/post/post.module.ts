@@ -3,13 +3,14 @@ import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { JwtModule } from '@nestjs/jwt';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
   imports: [
     JwtModule.register({}),
-    CloudinaryModule
+    CloudinaryModule,
   ],
   controllers: [PostController],
-  providers: [PostService]
+  providers: [PostService,AuthService]
 })
 export class PostModule {}

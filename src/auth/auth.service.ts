@@ -35,7 +35,7 @@ export class AuthService {
                 }
             })
             const tokens = await this.getTokens(user.id, user.email) //fetch the tokens
-            await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
+            //await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
             return tokens  
         } catch (error) {
             // Exception for the duplicate entry and to find which value is duplicate
@@ -90,7 +90,7 @@ export class AuthService {
 
         //Genrate tokens
         const tokens = await this.getTokens(user.id, user.email) //fetch the tokens
-        await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
+        //await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
         return tokens
 
     }
@@ -131,7 +131,7 @@ export class AuthService {
         }
         //Genrate tokens
         const tokens = await this.getTokens(user.id, user.email) //fetch the tokens
-        await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
+        //await this.updateRefreshToken(user.id, tokens.refresh_token) //put the refresh token in database
         return tokens
     }
 
@@ -192,7 +192,7 @@ export class AuthService {
             data: userDto
         })
         const tokens = await this.getTokens(newUser.id, newUser.email) //fetch the tokens
-        await this.updateRefreshToken(newUser.id, tokens.refresh_token) //put the refresh token in database
+        //await this.updateRefreshToken(newUser.id, tokens.refresh_token) //put the refresh token in database
         return tokens
     }
 
@@ -215,10 +215,11 @@ export class AuthService {
             })
 
         ])
-        
+
+        await this.updateRefreshToken(userId, rt)
         return {
             access_token: at,
-            refresh_token: rt
+            refresh_token: rt,
         }
     }
 

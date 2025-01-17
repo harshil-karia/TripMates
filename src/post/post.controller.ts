@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPip
 import { PostService } from './post.service';
 import { FileInterceptor, MulterModule } from '@nestjs/platform-express';
 import { AddPostDto, UpdatePostDto } from './dto';
-import { GetCurrentUserId } from 'src/auth/common/decorator';
+import { GetCurrentUser, GetCurrentUserId } from 'src/auth/common/decorator';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { multerOptions } from 'src/multer/multer.options';
@@ -26,19 +26,25 @@ export class PostController {
 
     @Get('getPosts')
     @HttpCode(HttpStatus.OK)
-    async getAllPosts(){
-        return this.postService.getAllPosts()
+    async getAllPosts(@GetCurrentUser() user: any){
+        return this.postService.getAllPosts(user)
     }
 
     @Get(':postId')
     @HttpCode(HttpStatus.OK)
-    async getPostById(@Param('postId',ParseIntPipe)postId: number) {
-        return this.postService.getPostById(postId)   
+    async getPostById(
+        @Param('postId',ParseIntPipe)postId: number,
+        @GetCurrentUser() user: any
+    ) {
+        return this.postService.getPostById(postId,user)   
     }
 
     @Get('user/:userId')
     @HttpCode(HttpStatus.OK)
-    async getPostsOfUser(@Param('userId',ParseIntPipe)userId: number) {
+    async getPostsOfUser(
+        @Param('userId',ParseIntPipe)userId: number,
+        @GetCurrentUser() user: any
+    ) {
         return this.postService.getPostsOfUser(userId)
     }
 
@@ -67,8 +73,9 @@ export class PostController {
     @HttpCode(HttpStatus.OK)
     async deletePost(
         @Param('postId',ParseIntPipe) postId: number,
-        @GetCurrentUserId() userId: number
+        @GetCurrentUserId() userId: number,
+        @GetCurrentUser() user: any
     ) {
-        return await this.postService.deletePost(postId,userId)
+        return await this.postService.deletePost(postId,userId,user)
     }
 }
