@@ -121,7 +121,7 @@ model Comment{
   id Int @id @default(autoincrement())
   comment String
   postId Int
-  post Post @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId Int
   user User @relation(fields: [userId], references: [id])
 }
@@ -150,7 +150,7 @@ model Like{
   userId Int //Userid of user who liked the post
   user User @relation(fields: [userId], references: [id])
   postId Int
-  post Post @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 //Many to one with post(One post can have many images but one image can only used in one post)
