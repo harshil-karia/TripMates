@@ -1,10 +1,11 @@
-import { Budget_Type } from "@prisma/client"
-import { IsEmpty, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { Budget_Type, Mate_Type } from "@prisma/client"
+import { IsArray, IsEmpty, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator"
 
 
 export class AddPostDto {
 
     @IsString()
+    @IsOptional()
     description?: string
 
     @IsString()
@@ -18,8 +19,22 @@ export class AddPostDto {
     @IsNotEmpty()
     @IsString()
     budget: string
+
+    @IsArray()
+    @IsNotEmpty()
+    @IsEnum(Mate_Type,{each: true})
+    preferedMate: Mate_Type[]
     
+    @IsArray()
+    @IsOptional()
+    @IsString({each: true})
     hashtags?: string[]
 
+    @IsString()
+    @IsNotEmpty()
+    startDate: string
 
+    @IsString()
+    @IsNotEmpty()
+    endDate: string
 }

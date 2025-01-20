@@ -5,6 +5,7 @@ import { AddPostDto, UpdatePostDto } from './dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as fs from 'fs'
 import { AuthService } from 'src/auth/auth.service';
+import { Mate_Type } from '@prisma/client';
 
 @Injectable()
 export class PostService {
@@ -116,6 +117,8 @@ export class PostService {
                 trip_duration: true,
                 budget_type: true,
                 images: true,
+                start_date: true,
+                end_date: true,
                 user: {
                     select: {
                         username: true,
@@ -175,8 +178,7 @@ export class PostService {
                 const uploadResult = await this.cloudinaryService.uploadOnCloudinary(images.path)
                 const imageUrl = uploadResult.secure_url // Url of the post image of cloudinary
                 const image_publicId = uploadResult.public_id // Public id of the image uploaded on cloudinary
-
-
+                const preferedMates = dto.preferedMate.map((mate: string) => mate as Mate_Type)
                 const post = await this.prisma.post.create({
                     data: {
                         user: {
@@ -186,6 +188,9 @@ export class PostService {
                         budget,
                         budget_type: dto.budget_type,
                         trip_duration: dto.trip_duration,
+                        preferedMate: preferedMates,
+                        start_date: dto.startDate,
+                        end_date: dto.endDate,
                         images: {
                             create: {
                                 url: imageUrl,
@@ -198,7 +203,7 @@ export class PostService {
                 const at = tokens.access_token
                 return {at,post}
         } catch (error) {
-            throw new ForbiddenException("Unable to upload",error)   
+            throw new ForbiddenException(error)   
         } finally {
             // Remove the image that is stored locally
             fs.unlink(images.path, (err) => {

@@ -17,4 +17,12 @@ export class UpdatePostDto {
         @IsOptional()
         @IsString()
         budget?: string
+
+        @IsOptional()
+        @IsString()
+        startDate?: string
+
+        @IsOptional()
+        @IsString()
+        endDate?: string
 }

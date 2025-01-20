@@ -89,7 +89,7 @@ model User {
   posts Post[] // List of posts by user
   likes Like[] // List of post on which user liked
   comments Comment[] //List of comments done by user
-  intrests UserIntrest[] // List of intrest of the user
+  intrests Interest_List[] // List of intrest of the user
 
 }
 
@@ -105,6 +105,9 @@ model Post{
   trip_duration String
   budget_type Budget_Type
   budget Int
+  preferedMate Mate_Type[] // Type of mates
+  start_date String @default("Not Decided")
+  end_date String @default("Not Decided")
 
   userId Int //User who posted this post
   user User @relation(fields: [userId], references: [id])
@@ -112,7 +115,6 @@ model Post{
   like Like[] // List of likes on the post
   hashtag PostHashtag[] // List of hashtags used by this post
   images Image [] // List of images on the post
-  preferedMate PostPreferdMate[] // Type of mates
 }
 
 //Many To One with Post (Many comments on single post)
@@ -124,6 +126,14 @@ model Comment{
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId Int
   user User @relation(fields: [userId], references: [id])
+  reply Reply[]
+}
+
+model Reply {
+  id Int @id @default(autoincrement())
+  content String
+  commentId Int 
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
 
 //Many to Many with post (PostHashatg) (One hashtag can be used in many post and one post can have many hashtag)
@@ -163,34 +173,34 @@ model Image{
 }
 
 //Many to Many with User (UserIntrest) (One user can have many intrest and many users can have same intrest )
-model Interest {
-  id Int @id @default(autoincrement())
-  intrests Interest_List
-  user UserIntrest[] // List of users intrested
-}
+// model Interest {
+//   id Int @id @default(autoincrement())
+//   intrests Interest_List
+//   user UserIntrest[] // List of users intrested
+// }
 
 //Many to Many model for User and Intrests
-model UserIntrest{
-  userId Int
-  intrestId Int
-  user User @relation(fields: [userId], references: [id])
-  intrest Interest @relation(fields: [intrestId], references: [id])
+// model UserIntrest{
+//   userId Int
+//   intrestId Int
+//   user User @relation(fields: [userId], references: [id])
+//   intrest Interest @relation(fields: [intrestId], references: [id])
 
-  @@id([userId,intrestId])
-}
+//   @@id([userId,intrestId])
+// }
 
-model Preferred_Mate {
-  id Int @id
-  type Mate_Type
-  postId Int
-  post PostPreferdMate[]
-}
+// model Preferred_Mate {
+//   id Int @id
+//   type Mate_Type
+//   postId Int
+//   post PostPreferdMate[]
+// }
 
-model PostPreferdMate {
-  postId Int
-  preferdMateId Int
-  preferedMate Preferred_Mate @relation(fields: [preferdMateId], references: [id])
-  post Post @relation(fields: [postId], references: [id])
+// model PostPreferdMate {
+//   postId Int
+//   preferdMateId Int
+//   preferedMate Preferred_Mate @relation(fields: [preferdMateId], references: [id])
+//   post Post @relation(fields: [postId], references: [id])
 
-  @@id([postId,preferdMateId])
-}
+//   @@id([postId,preferdMateId])
+// }

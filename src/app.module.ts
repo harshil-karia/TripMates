@@ -18,6 +18,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { ReplisModule } from './replis/replis.module';
 
 
 
@@ -46,6 +47,7 @@ import { extname } from 'path';
     LikesModule,
     HashtagModule,
     CloudinaryModule,
+    ReplisModule,
   ],
   controllers: [AppController, HashtagController],
   providers: [
