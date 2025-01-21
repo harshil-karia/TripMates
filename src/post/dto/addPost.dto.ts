@@ -31,10 +31,10 @@ export class AddPostDto {
     hashtags?: string[]
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     startDate: string
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     endDate: string
 }

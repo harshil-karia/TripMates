@@ -141,7 +141,7 @@ export class PostService {
     }
 
     // Create a post
-    async addPost(dto: AddPostDto, images: Express.Multer.File, userId: number) {
+    async addPost(dto: AddPostDto, images: Array<Express.Multer.File>, userId: number) {
         
         const user = await this.prisma.user.findUnique({
             where: {
@@ -153,7 +153,8 @@ export class PostService {
         }
         //Logic for post without images
         const budget = parseInt(dto.budget)
-        if(!images) {
+        if(!images || images.length === 0) {
+            console.log('hello')
             const newPost = await this.prisma.post.create({
                 data: {
                     user: {
@@ -175,9 +176,19 @@ export class PostService {
         //Logic for post with image
         try {
                 // Upload the file on cloudinary
-                const uploadResult = await this.cloudinaryService.uploadOnCloudinary(images.path)
-                const imageUrl = uploadResult.secure_url // Url of the post image of cloudinary
-                const image_publicId = uploadResult.public_id // Public id of the image uploaded on cloudinary
+
+                const uploadedImages = await Promise.all(
+                    images.map(async (image) => {
+                        const uploadResult = await this.cloudinaryService.uploadOnCloudinary(image.path)        
+                        return {
+                            url: uploadResult.secure_url,
+                            public_id: uploadResult.public_id
+                        }
+                    })
+                )
+                //const uploadResult = await this.cloudinaryService.uploadOnCloudinary(images.path)
+                //const imageUrl = uploadResult.secure_url // Url of the post image of cloudinary
+                //const image_publicId = uploadResult.public_id // Public id of the image uploaded on cloudinary
                 const preferedMates = dto.preferedMate.map((mate: string) => mate as Mate_Type)
                 const post = await this.prisma.post.create({
                     data: {
@@ -192,10 +203,7 @@ export class PostService {
                         start_date: dto.startDate,
                         end_date: dto.endDate,
                         images: {
-                            create: {
-                                url: imageUrl,
-                                public_id: image_publicId
-                            }
+                            create: uploadedImages
                         }
                     }
                 })
@@ -206,13 +214,15 @@ export class PostService {
             throw new ForbiddenException(error)   
         } finally {
             // Remove the image that is stored locally
-            fs.unlink(images.path, (err) => {
-                if (err) {
-                  console.error('Error deleting file:', err);
-                } else {
-                  console.log('File deleted from local storage');
-                }
-              });
+            images.forEach((image) => {
+                fs.unlink(image.path, (err) => {
+                    if (err) {
+                    console.error('Error deleting file:', err);
+                    } else {
+                    console.log('File deleted from local storage');
+                    }
+                });
+            })
         }
     }
 
@@ -289,17 +299,20 @@ export class PostService {
         const imageId = ids[0]
 
         // Remove the image from cloudinary
-        const status = await this.cloudinaryService.deleteFromCloudinary(publicIds[0])
+        publicIds.forEach(async (publicId) => {
+            const status = await this.cloudinaryService.deleteFromCloudinary(publicId)
+        })
+        
         
         // Delete the image before deleting the post
-        const removedImage = await this.prisma.image.delete({
-            where: {
-                id: imageId
-            }
-        })
-        if(!removedImage) {
-            throw new ForbiddenException('Unable to delete the image')
-        }
+        // const removedImage = await this.prisma.image.delete({
+        //     where: {
+        //         id: imageId
+        //     }
+        // })
+        // if(!removedImage) {
+        //     throw new ForbiddenException('Unable to delete the image')
+        // }
 
         // Delete the post after deleting image
         const response =  await this.prisma.post.delete({

@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { PostService } from './post.service';
-import { FileInterceptor, MulterModule } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor, MulterModule } from '@nestjs/platform-express';
 import { AddPostDto, UpdatePostDto } from './dto';
 import { GetCurrentUser, GetCurrentUserId } from 'src/auth/common/decorator';
 import { diskStorage } from 'multer';
@@ -50,9 +50,9 @@ export class PostController {
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FileInterceptor('image',multerOptions))
+    @UseInterceptors(FilesInterceptor('image',10))
     async addPost(
-        @UploadedFile() images: Express.Multer.File,
+        @UploadedFiles() images: Array<Express.Multer.File>,
         @Body() dto: AddPostDto,
         @GetCurrentUserId() userId: number
     ) {
