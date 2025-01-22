@@ -91,8 +91,8 @@ model User {
   rating Rating?
   social_links String[]
   dob DateTime?
-  // cover_photo String?
-  // profile_photo String? 
+  // cover_photo Image? @relation("Co")
+  // profile_photo  Image?
 
   posts Post[] // List of posts by user
   likes Like[] // List of post on which user liked
@@ -176,7 +176,7 @@ model Image{
   id Int @id @default(autoincrement())
   url String
   public_id String?
-  imageType ImageType
+  imageType ImageType @default(Post)
   postId Int?
   post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId Int?

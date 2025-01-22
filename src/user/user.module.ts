@@ -4,14 +4,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { AtStrategy, RtStrategy } from 'src/auth/strategies';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
     imports: [
         JwtModule.register({}),
-        ConfigModule
+        ConfigModule,
+        CloudinaryModule
     ],
     controllers: [UserController],
-    providers: [UserService, AtStrategy, RtStrategy]
+    providers: [UserService, AtStrategy, RtStrategy,AuthService]
 
 })
 export class UserModule {}

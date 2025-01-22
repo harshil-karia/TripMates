@@ -154,7 +154,6 @@ export class PostService {
         //Logic for post without images
         const budget = parseInt(dto.budget)
         if(!images || images.length === 0) {
-            console.log('hello')
             const newPost = await this.prisma.post.create({
                 data: {
                     user: {

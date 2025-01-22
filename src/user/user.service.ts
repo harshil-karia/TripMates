@@ -1,10 +1,12 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdatePasswordDto, UpdateUserDto } from './dto';
 import * as argon from 'argon2'
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
@@ -12,6 +14,9 @@ export class UserService {
         private prisma: PrismaService,
         private config: ConfigService,
         private jwtService: JwtService,
+        private cloudinaryService: CloudinaryService,
+        private authService: AuthService
+        
     ){}
 
     //Update the user
@@ -153,12 +158,114 @@ export class UserService {
                 posts: true,
                 intrests: true,
                 social_links: true,
+                images: true
             }
         })
         if(!user) {
             throw new ForbiddenException('Invalid username')
         }
         return user;
+    }
+
+    async updateProfilePhoto(image: Express.Multer.File,userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!user) {
+            throw new NotFoundException('User not found')
+        }
+        const addedImage = await this.cloudinaryService.uploadOnCloudinary(image.path)
+        const findImage = await this.prisma.image.findMany({
+            where: {
+                userId,
+                imageType: 'Profile_Photo'
+            }
+        })
+        const tokens = await this.authService.getTokens(userId,user.email)
+        const at = tokens.access_token
+        if(!findImage || findImage.length === 0) {
+            const profilePicture = await this.prisma.image.create({
+                data: {
+                    imageType: 'Profile_Photo',
+                    userId,
+                    url: addedImage.secure_url,
+                    public_id: addedImage.public_id,                  
+                }
+            })
+            return {
+                at,
+                profilePicture
+            }
+        } else {
+            const removedImage = await this.cloudinaryService.deleteFromCloudinary(findImage[0].public_id)
+            const updateProfilePicture = await this.prisma.image.update({
+                where: {
+                    id: findImage[0].id
+                },
+                data: {
+                    url: addedImage.secure_url,
+                    public_id: addedImage.public_id
+                }
+            })
+            return {
+                at,
+                updateProfilePicture
+            }
+        }
+        
+    }
+
+    async updateCoverPhoto(image: Express.Multer.File,userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if(!user) {
+            throw new NotFoundException('User not found')
+        }
+        const addedImage = await this.cloudinaryService.uploadOnCloudinary(image.path)
+        const findImage = await this.prisma.image.findMany({
+            where: {
+                userId,
+                imageType: 'Cover_Photo'
+            }
+        })
+        const tokens = await this.authService.getTokens(userId,user.email)
+        const at = tokens.access_token
+        if(!findImage || findImage.length === 0) {
+            const coverPicture = await this.prisma.image.create({
+                data: {
+                    imageType: 'Cover_Photo',
+                    userId,
+                    url: addedImage.secure_url,
+                    public_id: addedImage.public_id,                  
+                }
+            })
+            return {
+                at,
+                coverPicture
+            }
+        } else {
+            const removedImage = await this.cloudinaryService.deleteFromCloudinary(findImage[0].public_id)
+            const updateCoverPicture = await this.prisma.image.update({
+                where: {
+                    id: findImage[0].id
+                },
+                data: {
+                    url: addedImage.secure_url,
+                    public_id: addedImage.public_id
+                }
+            })
+            return {
+                at,
+                updateCoverPicture
+            }
+        }
     }
 
 
