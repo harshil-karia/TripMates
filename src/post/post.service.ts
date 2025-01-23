@@ -252,13 +252,7 @@ export class PostService {
         } finally {
             // Remove the image that is stored locally
             images.forEach((image) => {
-                fs.unlink(image.path, (err) => {
-                    if (err) {
-                    console.error('Error deleting file:', err);
-                    } else {
-                    console.log('File deleted from local storage');
-                    }
-                });
+                fs.unlink(image.path, (err) => {});
             })
         }
     }
