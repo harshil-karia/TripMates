@@ -147,7 +147,7 @@ model Reply {
 //Many to Many with post (PostHashatg) (One hashtag can be used in many post and one post can have many hashtag)
 model Hashtag{
   id Int @id @default(autoincrement())
-  hashtag String
+  hashtag String @unique
   posts PostHashtag[] // List of posts uses this hashtag
 }
 

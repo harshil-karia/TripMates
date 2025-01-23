@@ -153,6 +153,29 @@ export class PostService {
         }
         //Logic for post without images
         const budget = parseInt(dto.budget)
+
+        const hashtags = dto.hashtags; // Array of hashtags from the DTO
+
+    // Prepare the hashtag processing
+    const processedHashtags = await Promise.all(
+        hashtags.map(async (hashtag) => {
+          const existingHashtag = await this.prisma.hashtag.findUnique({
+            where: { hashtag }, // Explicitly use the unique key
+          });
+    
+          if (existingHashtag) {
+            // If the hashtag exists, connect it
+            return { id: existingHashtag.id };
+          } else {
+            // If the hashtag doesn't exist, create it
+            const newHashtag = await this.prisma.hashtag.create({
+              data: { hashtag },
+            });
+            return { id: newHashtag.id };
+          }
+        })
+    )
+
         if(!images || images.length === 0) {
             const newPost = await this.prisma.post.create({
                 data: {
@@ -163,8 +186,16 @@ export class PostService {
                     budget,
                     budget_type: dto.budget_type,
                     trip_duration: dto.trip_duration,
+                    start_date: dto.startDate,
+                    end_date: dto.endDate,
                 }
             })
+            await this.prisma.postHashtag.createMany({
+                data: processedHashtags.map((hashtag) => ({
+                  postId: newPost.id,
+                  hashtagId: hashtag.id,
+                })),
+              });
             const tokens = await this.authService.getTokens(userId,user.email)
             const at = tokens.access_token
             return {
@@ -203,13 +234,20 @@ export class PostService {
                         end_date: dto.endDate,
                         images: {
                             create: uploadedImages
-                        }
+                        },
                     }
                 })
+                await this.prisma.postHashtag.createMany({
+                    data: processedHashtags.map((hashtag) => ({
+                      postId: post.id,
+                      hashtagId: hashtag.id,
+                    })),
+                  });
                 const tokens = await this.authService.getTokens(userId,user.email)
                 const at = tokens.access_token
                 return {at,post}
         } catch (error) {
+            console.log(error)
             throw new ForbiddenException(error)   
         } finally {
             // Remove the image that is stored locally
