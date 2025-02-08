@@ -19,6 +19,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { ReplisModule } from './replis/replis.module';
+import { ConnectionController } from './connection/connection.controller';
+import { ConnectionModule } from './connection/connection.module';
 
 
 
@@ -48,15 +50,15 @@ import { ReplisModule } from './replis/replis.module';
     HashtagModule,
     CloudinaryModule,
     ReplisModule,
+    ConnectionModule,
   ],
-  controllers: [AppController, HashtagController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard
     },
-    HashtagService,
   ],
 })
 export class AppModule {}
