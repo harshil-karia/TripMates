@@ -1,0 +1,265 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ImageType {
+  Profile_Photo
+  Cover_Photo
+  Post
+}
+
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Rating {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+enum Budget_Type {
+  Moderate
+  Luxurious
+  Backpacking
+  Business
+}
+
+enum Interest_List {
+  Beach
+  Mountain
+  Forest
+  Island
+  Desert
+  Rivers
+  Metropolitan_Cities
+  Historical_Places
+  Adventure
+  Religious_Sites
+  Cultural_Sites
+  Polar_Regions
+  Man_Made_Wonders
+  Amusement_Parks
+  Castles
+  Palaces
+  Wildlife_Reserves
+}
+
+enum Mate_Type {
+  Male
+  Female
+  Family
+  Any
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+
+//One to Many with Post (One user can have many post but one post can be done by only one user)
+//One to Many with Like (One user can do many likes but one like can be done by only one user)
+//One to Many with Comment (One user can do many comments but one comment can be done by only one user)
+//Many to Many with Intrest (Many user can have one intrest and vice-versa)
+model User {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  refreshToken String?
+
+  username String @unique
+  email String @unique
+  password String
+  firstName String
+  lastName String
+  gender Gender
+  mobile String? @unique
+  bio String?
+  location String
+  rating Rating?
+  social_links String[]
+  dob DateTime?
+  // cover_photo Image? @relation("Co")
+  // profile_photo  Image?
+
+  notificationId Notification?
+  posts Post[] // List of posts by user
+  likes Like[] // List of post on which user liked
+  comments Comment[] //List of comments done by user
+  intrests Interest_List[] // List of intrest of the user
+  images Image[]
+  replies Reply[]
+  connectionRequestsSent Connection[] @relation("Requester")
+  connectionRequestsReceived Connection[] @relation("Receiver")
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+  likeCommentNotifications Boolean @default(true)
+  chatNotifications Boolean @default(true)
+  recommendedNotifications Boolean @default(true)
+  
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+
+  
+}
+
+
+//Many to One with User (One post can be done by only one User but one user can do many posts)
+//One to Many with Comments (One post can have many comments but one comment can have only one post)
+//One to Many with like (One post can have many likes but one like can be done in only one post)
+//Many to Many with Hashtag (PostHashtag) (One post can have many hashtag and one hashtag can be used in multiple post)
+//One to Many with Image (One post can have more than one image but one image can be used in many post)
+model Post{
+  id Int @id @default(autoincrement())
+  location String
+  description String
+  time DateTime @default(now())
+  trip_duration String
+  budget_type Budget_Type
+  budget Int
+  preferedMate Mate_Type[] // Type of mates
+  start_date String @default("Not Decided")
+  end_date String @default("Not Decided")
+
+  userId Int //User who posted this post
+  user User @relation(fields: [userId], references: [id])
+  comments Comment[] // List of comments on a post
+  like Like[] // List of likes on the post
+  hashtag PostHashtag[] // List of hashtags used by this post
+  images Image [] // List of images on the post
+}
+
+//Many To One with Post (Many comments on single post)
+//Many to One with User (Many comments by single user)
+model Comment{
+  id Int @id @default(autoincrement())
+  time DateTime @default(now())
+  comment String
+  postId Int
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  reply Reply[]
+  like Like[]
+}
+
+model Reply {
+  id Int @id @default(autoincrement())
+  time DateTime @default(now())
+  content String
+  commentId Int 
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  like Like[]
+}
+
+//Many to Many with post (PostHashatg) (One hashtag can be used in many post and one post can have many hashtag)
+model Hashtag{
+  id Int @id @default(autoincrement())
+  hashtag String @unique
+  posts PostHashtag[] // List of posts uses this hashtag
+}
+
+//Model for Many to Many mapping of Post and Hashtag
+model PostHashtag {
+  postId   Int
+  hashtagId Int
+  post Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id])
+
+  @@id([postId, hashtagId])
+}
+
+//Many to one with user (One like can be done by only one user but one user can do many likes)
+//Many to one with post (One like can be done on only one post but one post can have many likes)
+model Like{
+  id Int @id @default(autoincrement())
+  userId Int //Userid of user who liked the post
+  user User @relation(fields: [userId], references: [id])
+  postId Int?
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId Int?
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  replyId Int?
+  reply Reply? @relation(fields: [replyId], references: [id], onDelete: Cascade)
+}
+
+//Many to one with post(One post can have many images but one image can only used in one post)
+model Image{
+  id Int @id @default(autoincrement())
+  url String
+  public_id String?
+  imageType ImageType @default(Post)
+  postId Int?
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Connection {
+  id Int @id @default(autoincrement())
+  requesterUserId Int
+  receiverUserId Int
+  status ConnectionStatus @default(PENDING)
+
+  requesterUser User @relation("Requester", fields: [requesterUserId], references: [id])
+  receiverUser User @relation("Receiver", fields: [receiverUserId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([requesterUserId, receiverUserId])
+}
+
+
+//Many to Many with User (UserIntrest) (One user can have many intrest and many users can have same intrest )
+// model Interest {
+//   id Int @id @default(autoincrement())
+//   intrests Interest_List
+//   user UserIntrest[] // List of users intrested
+// }
+
+//Many to Many model for User and Intrests
+// model UserIntrest{
+//   userId Int
+//   intrestId Int
+//   user User @relation(fields: [userId], references: [id])
+//   intrest Interest @relation(fields: [intrestId], references: [id])
+
+//   @@id([userId,intrestId])
+// }
+
+// model Preferred_Mate {
+//   id Int @id
+//   type Mate_Type
+//   postId Int
+//   post PostPreferdMate[]
+// }
+
+// model PostPreferdMate {
+//   postId Int
+//   preferdMateId Int
+//   preferedMate Preferred_Mate @relation(fields: [preferdMateId], references: [id])
+//   post Post @relation(fields: [postId], references: [id])
+
+//   @@id([postId,preferdMateId])
+// }
