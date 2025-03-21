@@ -9,7 +9,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true
   }));
-  app.enableCors();
+  app.enableCors({
+    origin: "*", 
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: "Content-Type, Authorization",
+    credentials: true,
+  });
   const key = uuidv4()
   console.log(key)
   await app.listen(process.env.PORT ?? 3500);
