@@ -10,13 +10,11 @@ async function bootstrap() {
     whitelist: true
   }));
   app.enableCors({
-    origin: "*", 
+    origin: "http://localhost:3912", 
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: "Content-Type, Authorization",
     credentials: true,
   });
-  const key = uuidv4()
-  console.log(key)
-  await app.listen(process.env.PORT ?? 3500);
+  await app.listen(3500);
 }
 bootstrap();
