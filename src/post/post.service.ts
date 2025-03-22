@@ -54,6 +54,7 @@ export class PostService {
                     select: {
                         id: true,
                         comment: true,
+                        time: true,
                         like: true,
                         user: {
                             select: {

@@ -171,16 +171,44 @@ export class UserService {
                 mobile: true,
                 location: true,
                 rating: true,
-                posts: true,
+                id: true,
+                posts: {
+                    select: {
+                        like: true,
+                        comments: true,
+                        images: true,
+                        budget: true,
+                        budget_type: true,
+                        description: true,
+                        end_date: true,
+                        location: true,
+                        preferedMate: true,
+                        start_date: true,
+                        time: true,
+                        trip_duration: true,
+                        hashtag: true,
+                    }
+                },
                 intrests: true,
                 social_links: true,
-                images: true
+                images: {
+                    select: {
+                        imageType: true,
+                        url: true,
+                    }
+                }
             }
         })
         if(!user) {
             throw new ForbiddenException('Invalid username')
         }
-        return user;
+        const tokens = await this.authService.getTokens(user.id,user.email)
+        const at = tokens.access_token
+        return {
+            access_token: at,
+            user
+        };
+        
     }
 
     async updateProfilePhoto(image: Express.Multer.File,userId: number) {
