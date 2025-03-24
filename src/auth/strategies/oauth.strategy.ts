@@ -15,7 +15,7 @@ export class OAuthStrategy extends PassportStrategy(Strategy, 'oauth') {
             tokenURL: 'https://oauth2.googleapis.com/token',
             clientID: config.get('CLIENT_ID'),
             clientSecret: config.get('CLIENT_SECRET'),
-            callbackURL: 'http://localhost:3500/auth/google/callback',
+            callbackURL: 'https://tripmates-production.up.railway.app/auth/google/callback',
             scope: ['email', 'profile']
         })
     }
